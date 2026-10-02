@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kịch Bản Sân Khấu: Phiên Tòa Xét Xử Thời Gian</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDKs (Realtime Cloud Sync) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-page: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --card-bg: #ffffff;
+            
+            /* Palettes cho 10 vai */
+            --tp-color: #1e40af; --tp-bg: #eff6ff; --tp-border: #3b82f6; --tp-badge: #dbeafe;
+            --tk-color: #334155; --tk-bg: #f8fafc; --tk-border: #64748b; --tk-badge: #e2e8f0;
+            --tg-color: #991b1b; --tg-bg: #fef2f2; --tg-border: #ef4444; --tg-badge: #fee2e2;
+            --sv-color: #166534; --sv-bg: #f0fdf4; --sv-border: #22c55e; --sv-badge: #dcfce7;
+            --lsn-color: #92400e; --lsn-bg: #fffbeb; --lsn-border: #f59e0b; --lsn-badge: #fef3c7;
+            --lsb-color: #115e59; --lsb-bg: #f0fdfa; --lsb-border: #14b8a6; --lsb-badge: #ccfbf1;
+            --mxh-color: #9d174d; --mxh-bg: #fdf2f8; --mxh-border: #ec4899; --mxh-badge: #fce7f3;
+            --nfl-color: #5b21b6; --nfl-bg: #f5f3ff; --nfl-border: #8b5cf6; --nfl-badge: #ede9fe;
+            --tdl-color: #9a3412; --tdl-bg: #fff7ed; --tdl-border: #f97316; --tdl-badge: #ffedd5;
+            --gs-color: #3730a3; --gs-bg: #eef2ff; --gs-border: #6366f1; --gs-badge: #e0e7ff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 24px 16px 80px;
+        }
+
+        .container {
+            max-width: 880px;
+            margin: 0 auto;
+        }
+
+        /* Top Header */
+        .header-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .header-card h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .header-card .sub-title {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        .meta-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        .meta-tag {
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+        .sync-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #16a34a;
+            background: #dcfce7;
+            padding: 3px 12px;
+            border-radius: 999px;
+        }
+        .sync-dot {
+            width: 7px;
+            height: 7px;
+            background: #16a34a;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* Role Selection Control Panel */
+        .control-panel {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 12px;
+            z-index: 100;
+        }
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .select-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 280px;
+        }
+        .select-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #334155;
+            white-space: nowrap;
+        }
+        .char-select {
+            flex: 1;
+            padding: 9px 12px;
+            border-radius: 8px;
+            border: 1.5px solid #cbd5e1;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+            background: #ffffff;
+            cursor: pointer;
+            transition: border 0.15s ease;
+        }
+        .char-select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .btn-toggle {
+            background: #f1f5f9;
+            color: #334155;
+            border-color: #cbd5e1;
+        }
+        .btn-toggle.active {
+            background: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+        }
+        .btn-pdf {
+            background: #2563eb;
+            color: #ffffff;
+        }
+        .btn-pdf:hover {
+            background: #1d4ed8;
+        }
+
+        /* Role Info Card */
+        .role-info-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .role-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .role-info-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .role-progress {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #2563eb;
+            background: #eff6ff;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+        .role-details {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.5;
+        }
+        .role-details strong {
+            color: #1e293b;
+        }
+
+        /* Act Headings */
+        .act-header {
+            margin: 32px 0 12px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #cbd5e1;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        .act-header h2 {
+            font-size: 17px;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: uppercase;
+        }
+
+        /* Beat / Dialogue Card */
+        .beat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+            border: 1px solid var(--border-color);
+            border-left: 5px solid #94a3b8;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            transition: all 0.2s ease;
+        }
+        .beat-card.my-role-highlight {
+            border: 2px solid #3b82f6;
+            border-left: 6px solid #2563eb;
+            box-shadow: 0 6px 18px rgba(37,99,235,0.12);
+        }
+        .beat-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .char-badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .beat-index {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .guideline-text {
+            font-size: 14px;
+            font-style: italic;
+            color: #334155;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        /* Dialogue Box */
+        .dialogue-box {
+            background: #f8fafc;
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 12px;
+            transition: border-color 0.2s ease;
+        }
+        .dialogue-box.active-user {
+            background: #ffffff;
+            border-color: #3b82f6;
+            border-style: solid;
+        }
+        .dialogue-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+        .dialogue-textarea {
+            width: 100%;
+            min-height: 64px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.55;
+            resize: vertical;
+            background: #ffffff;
+            transition: border-color 0.15s ease;
+        }
+        .dialogue-textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37,99,235,0.1);
+        }
+        .dialogue-status {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* Character styling classes */
+        .c-tham-phan { background: var(--tp-bg); border-left-color: var(--tp-border); }
+        .c-tham-phan .char-badge { background: var(--tp-badge); color: var(--tp-color); }
+
+        .c-thu-ky { background: var(--tk-bg); border-left-color: var(--tk-border); }
+        .c-thu-ky .char-badge { background: var(--tk-badge); color: var(--tk-color); }
+
+        .c-thoi-gian { background: var(--tg-bg); border-left-color: var(--tg-border); }
+        .c-thoi-gian .char-badge { background: var(--tg-badge); color: var(--tg-color); }
+
+        .c-sinh-vien { background: var(--sv-bg); border-left-color: var(--sv-border); }
+        .c-sinh-vien .char-badge { background: var(--sv-badge); color: var(--sv-color); }
+
+        .c-ls-nguyen { background: var(--lsn-bg); border-left-color: var(--lsn-border); }
+        .c-ls-nguyen .char-badge { background: var(--lsn-badge); color: var(--lsn-color); }
+
+        .c-ls-bi { background: var(--lsb-bg); border-left-color: var(--lsb-border); }
+        .c-ls-bi .char-badge { background: var(--lsb-badge); color: var(--lsb-color); }
+
+        .c-mxh { background: var(--mxh-bg); border-left-color: var(--mxh-border); }
+        .c-mxh .char-badge { background: var(--mxh-badge); color: var(--mxh-color); }
+
+        .c-netflix { background: var(--nfl-bg); border-left-color: var(--nfl-border); }
+        .c-netflix .char-badge { background: var(--nfl-badge); color: var(--nfl-color); }
+
+        .c-tran-duy-ly { background: var(--tdl-bg); border-left-color: var(--tdl-border); }
+        .c-tran-duy-ly .char-badge { background: var(--tdl-badge); color: var(--tdl-color); }
+
+        .c-giao-su { background: var(--gs-bg); border-left-color: var(--gs-border); }
+        .c-giao-su .char-badge { background: var(--gs-badge); color: var(--gs-color); }
+
+        /* Print formatting view */
+        .print-dialogue-text {
+            display: none;
+            font-size: 14.5px;
+            font-weight: 600;
+            color: #0f172a;
+            padding-top: 6px;
+            white-space: pre-wrap;
+        }
+
+        /* PRINT STYLESHEET */
+        @media print {
+            body {
+                background: white !important;
+                padding: 0 !important;
+                font-size: 11pt !important;
+                color: black !important;
+            }
+            .control-panel, .meta-badges, .sync-badge, .role-info-card, .dialogue-box .dialogue-label, .dialogue-status, .dialogue-textarea {
+                display: none !important;
+            }
+            .header-card {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 0 16px 0 !important;
+                border-bottom: 2px solid #0f172a !important;
+                margin-bottom: 20px !important;
+            }
+            .beat-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+                border-left-width: 6px !important;
+                margin-bottom: 12px !important;
+                padding: 12px 14px !important;
+            }
+            .act-header {
+                break-before: page;
+                page-break-before: page;
+                margin-top: 24px !important;
+            }
+            .act-header:first-of-type {
+                break-before: avoid;
+                page-break-before: avoid;
+            }
+            .print-dialogue-text {
+                display: block !important;
+            }
+            .print-dialogue-text::before {
+                content: "💬 Lời thoại: ";
+                font-weight: 700;
+                color: #2563eb;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header-card">
+        <h1>Phiên Tòa Xét Xử Thời Gian</h1>
+        <div class="sub-title">Khung sườn kịch bản hành động, tâm lý & Trình biên soạn lời thoại trực tuyến</div>
+        <div class="meta-badges">
+            <span class="meta-tag">🎭 Thể loại: Kịch châm biếm xã hội</span>
+            <span class="meta-tag">⏱ Thời lượng: 12 - 15 phút</span>
+            <span class="meta-tag">👥 Quy mô: 10 diễn viên</span>
+            <span class="meta-tag">⚖️ 70% Hài hước - 30% Đúc kết</span>
+        </div>
+        <div class="sync-badge">
+            <span class="sync-dot"></span>
+            <span id="syncStatusText">Tự động đồng bộ & Lưu trữ sẵn sàng</span>
+        </div>
+    </div>
+
+    <!-- Thanh Điều Khiển: Chọn vai & Xuất PDF -->
+    <div class="control-panel">
+        <div class="control-row">
+            <div class="select-group">
+                <label class="select-label" for="roleSelector">👤 Chọn vai của bạn:</label>
+                <select id="roleSelector" class="char-select" onchange="handleRoleChange(this.value)">
+                    <option value="all">-- Xem tất cả 10 vai diễn --</option>
+                    <option value="tham-phan">Thẩm Phán (Chủ tọa)</option>
+                    <option value="thu-ky">Thư Ký Tòa Án (Silent MVP)</option>
+                    <option value="thoi-gian">Nguyên Đơn - "Thời Gian"</option>
+                    <option value="sinh-vien">Bị Đơn - "Sinh Viên Đại Diện"</option>
+                    <option value="ls-nguyen">Luật Sư Bên Nguyên Đơn</option>
+                    <option value="ls-bi">Luật Sư Bên Bị Đơn</option>
+                    <option value="mxh">Nhân Chứng 1 - "Mạng Xã Hội"</option>
+                    <option value="netflix">Nhân Chứng 2 - "Netflix/Game"</option>
+                    <option value="tran-duy-ly">Nhân Chứng 3 - "Sự Trần Duy Lý"</option>
+                    <option value="giao-su">Chuyên Gia - "Giáo Sư Tâm Lý"</option>
+                </select>
+            </div>
+
+            <div class="btn-group">
+                <button id="btnFocusMode" class="btn btn-toggle" onclick="toggleViewMode('focus')">
+                    🎯 Chỉ cảnh của tôi
+                </button>
+                <button id="btnFullMode" class="btn btn-toggle active" onclick="toggleViewMode('full')">
+                    📖 Toàn bộ kịch bản
+                </button>
+                <button class="btn btn-pdf" onclick="exportToPdf()">
+                    📥 Xuất PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin vai diễn đã chọn -->
+    <div id="roleInfoCard" class="role-info-card">
+        <div class="role-info-header">
+            <div id="roleTitle" class="role-info-title">Tên vai diễn</div>
+            <div id="roleProgress" class="role-progress">Tiến độ điền: 0/0</div>
+        </div>
+        <div class="role-details">
+            <div>🎭 <strong>Tâm lý cốt lõi:</strong> <span id="roleVibe">-</span></div>
+            <div style="margin-top: 4px;">🎒 <strong>Đạo cụ nhận diện:</strong> <span id="roleProps">-</span></div>
+        </div>
+    </div>
+
+    <!-- Vùng Render 51 phân đoạn kịch bản -->
+    <div id="scriptContent"></div>
+</div>
+
+<script>
+    // Dữ liệu metadata 10 nhân vật
+    const charMetadata = {
+        "tham-phan": {
+            "name": "Thẩm Phán",
+            "title": "Chủ tọa phiên tòa",
+            "props": "Búa gỗ lớn + Áo choàng đen",
+            "vibe": "Uy nghiêm, sắc sảo, châm biếm tinh tế, nắm quyền điều phối"
+        },
+        "thu-ky": {
+            "name": "Thư Ký Tòa Án",
+            "title": "Ghi chép biên bản (Silent MVP)",
+            "props": "Búa nhỏ/chuông + Tập biên bản",
+            "vibe": "Mặt lạnh như tiền, trang trọng giả tạo, cú chốt punchline shock"
+        },
+        "thoi-gian": {
+            "name": "Nguyên Đơn - \"Thời Gian\"",
+            "title": "Bên khởi kiện sinh viên",
+            "props": "Đồng hồ cát hoặc đồng hồ báo thức",
+            "vibe": "Uất ức, giận dữ, sắc bén, phản đòn bằng logic không thể chối cãi"
+        },
+        "sinh-vien": {
+            "name": "Bị Đơn - \"Sinh Viên Đại Diện\"",
+            "title": "Đại diện sinh viên lỡ deadline",
+            "props": "Balo cũ kỹ + Laptop lộn xộn",
+            "vibe": "Tội nghiệp, mệt mỏi, dồn nén cảm xúc, trần tình thật thà"
+        },
+        "ls-nguyen": {
+            "name": "Luật Sư Bên Nguyên Đơn",
+            "title": "Bảo vệ Thời Gian",
+            "props": "Thư mục giấy tờ / Clipboard",
+            "vibe": "Lạnh lùng, búng tay gotcha, dùng data tấn công không khoan nhượng"
+        },
+        "ls-bi": {
+            "name": "Luật Sư Bên Bị Đơn",
+            "title": "Bảo vệ Sinh Viên",
+            "props": "Sổ tay nhỏ + Bút chì",
+            "vibe": "Ấm áp, cố cứu nguy nhưng lúng túng vì chứng cứ quá bất lợi"
+        },
+        "mxh": {
+            "name": "Nhân Chứng 1 - \"Mạng Xã Hội\"",
+            "title": "TikTok/Instagram nhân cách hóa",
+            "props": "Điện thoại + Gậy selfie mini",
+            "vibe": "Catwalk, tràn đầy năng lượng Gen Z, hút thời gian không chút hối lỗi"
+        },
+        "netflix": {
+            "name": "Nhân Chứng 2 - \"Netflix/Game\"",
+            "title": "Đại diện giải trí thụ động",
+            "props": "Remote TV hoặc tay cầm game giả",
+            "vibe": "Ung dung, giọng chậm kiểu ASMR ru ngủ, quyến rũ 'nốt tập thôi'"
+        },
+        "tran-duy-ly": {
+            "name": "Nhân Chứng 3 - \"Sự Trần Duy Lý\"",
+            "title": "Đại diện HĐ ngoại khóa vô bổ",
+            "props": "Banner / Poster sự kiện + Tờ rơi",
+            "vibe": "Tăng động, vẫy banner, ngây thơ tin mình làm đẹp CV cho sinh viên"
+        },
+        "giao-su": {
+            "name": "Chuyên Gia - \"Giáo Sư Tâm Lý Học\"",
+            "title": "Giám định viên độc lập (Khoa học)",
+            "props": "Kính gọng to + Bút laser",
+            "vibe": "Điềm tĩnh, uyên bác, giải thích khoa học và trao 3 chìa khóa kỹ năng"
+        }
+    };
+
+    // Danh sách toàn bộ 51 phân cảnh của kịch bản
+    const scriptBeats = [
+        {"id": "h1_b1", "act": "Hồi 1: Mở màn & Thiết lập xung đột", "char_key": "thu-ky", "char_name": "Thư Ký Tòa Án", "guideline": "Đứng bên cạnh bục thẩm phán, tay cầm búa nhỏ hoặc chuông, mặt nghiêm trang giả tạo; gõ búa ba cái đều đặn để báo hiệu; giọng rõ ràng, trang trọng đọc biên bản mở đầu; mục tiêu tạo sự chú ý tuyệt đối của toàn bộ hội trường."},
+        {"id": "h1_b2", "act": "Hồi 1: Mở màn & Thiết lập xung đột", "char_key": "tham-phan", "char_name": "Thẩm Phán", "guideline": "Ngồi trên ghế cao nhất ở trung tâm, tay cầm búa gỗ lớn, mặc áo choàng đen improvised; ánh mắt quét qua toàn bộ tòa án với vẻ uy nghiêm nhưng đằng sau là sự mỉa mai; giọng trầm, chậm rãi nhưng đầy quyền lực; xả ra lời mở đầu về tính nghiêm trọng của vụ án 'lãng phí thời gian sinh viên'; mục tiêu thiết lập quyền uy và giới thiệu hai bên tranh tụng."},
+        {"id": "h1_b3", "act": "Hồi 1: Mở màn & Thiết lập xung đột", "char_key": "thu-ky", "char_name": "Thư Ký Tòa Án", "guideline": "Hơi cúi người về phía Thẩm Phán, tay giơ cao tập biên bản; giọng tiếp tục nghiêm trang; đọc tên hai bên - Nguyên Đơn là 'Ông Thời Gian' và Bị Đơn là 'Sinh Viên Đại Diện'; mục tiêu giới thiệu chính thức hai nhân vật chính."},
+        {"id": "h1_b4", "act": "Hồi 1: Mở màn & Thiết lập xung đột", "char_key": "tham-phan", "char_name": "Thẩm Phán", "guideline": "Gõ búa một cái vang, quay sang bên trái; ánh mắt sắc lạnh nhìn Thời Gian; giọng mỉa mai nhẹ; yêu cầu Nguyên Đơn trình bày lý do khởi kiện; mục tiêu mở đầu cho phần cáo trạng."},
+        {"id": "h1_b5", "act": "Hồi 1: Mở màn & Thiết lập xung đột", "char_key": "thoi-gian", "char_name": "Nguyên Đơn - \"Thời Gian\"", "guideline": "Đứng phắt dậy từ ghế bên trái, tay giơ cao chiếc đồng hồ cát hoặc đồng hồ báo thức như bằng chứng thép; mặt hầm hầm giận dữ, hai lông mày nhíu lại; giọng mỉa mai cay đắng; xả hết nỗi uất ức ngút ngàn vì suốt 4 năm đại học luôn bị sinh viên đổ tội trôi nhanh, bị lãng phí, bị giết chết; liệt kê các tội danh cụ thể như 'kéo deadline tới phút chót', 'bỏ lỡ cơ hội', 'hối hận suốt đời'; mục tiêu dồn Sinh Viên vào thế bí không đường chối cãi và khơi mào xung đột trung tâm."},
+        {"id": "h1_b6", "act": "Hồi 1: Mở màn & Thiết lập xung đột", "char_key": "sinh-vien", "char_name": "Sinh Viên Đại Diện", "guideline": "Ngồi thu mình ở ghế bên phải, balo cũ kỹ và laptop đặt lộn xộn bên cạnh; mặt tái mét, vai sụp xuống; tay run run giơ lên như muốn bào chữa nhưng lời nói yếu ớt; giọng run rẩy, đầy cảm xúc chân thật; xả ra sự mệt mỏi vì deadline chồng chéo, áp lực gia đình, mạng xã hội cám dỗ, và cảm giác bất lực trước vô vàn việc phải làm; mục tiêu tạo sự đồng cảm từ khán giả và phản bác yếu ớt rằng 'không phải em cố tình'."},
+        {"id": "h1_b7", "act": "Hồi 1: Mở màn & Thiết lập xung đột", "char_key": "tham-phan", "char_name": "Thẩm Phán", "guideline": "Gõ búa mạnh để ngăn hai bên cãi vã dữ dội; mặt nghiêm khắc nhưng ánh mắt lấp lánh tinh nghịch; giọng uy nghiêm nhưng có chút mỉa mai; tuyên bố sẽ triệu tập nhân chứng để làm rõ sự thật; mục tiêu chuyển sang Hồi 2 - thẩm vấn nhân chứng."},
+        
+        {"id": "h2_d1_b1", "act": "Hồi 2 - Đoạn 1: Nhân chứng 1 - Mạng Xã Hội", "char_key": "ls-nguyen", "char_name": "Luật Sư Bên Nguyên Đơn", "guideline": "Đứng thẳng dậy từ vị trí bên trái, tay cầm thư mục giấy tờ; mắt sắc lạnh quét qua hàng ghế nhân chứng; giọng lạnh lùng, chuyên nghiệp; xả ra lời yêu cầu triệu tập nhân chứng đầu tiên là 'Mạng Xã Hội'; mục tiêu tạo tension và dẫn dắt vào phần bùng nổ đầu tiên."},
+        {"id": "h2_d1_b2", "act": "Hồi 2 - Đoạn 1: Nhân chứng 1 - Mạng Xã Hội", "char_key": "mxh", "char_name": "Nhân Chứng 1 - \"Mạng Xã Hội\"", "guideline": "Bật dậy từ ghế hàng đầu với năng lượng tràn đầy, tay cầm điện thoại và gậy selfie mini; bước ra trung tâm với dáng đi kiểu catwalk, vừa đi vừa chụp ảnh khán giả; mặt rạng rỡ, tự tin phô trương kiểu influencer; giọng nhanh, nhiều từ gen Z, sống động; xả ra sự tự hào vì 'cho sinh viên niềm vui', thừa nhận hút thời gian nhưng không hề xấu hổ, liệt kê các tính năng gây nghiện như reels, TikTok, endless scroll; thỉnh thoảng quay sang selfie với thẩm phán hoặc nhảy động tác TikTok 5 giây; mục tiêu tạo cao trào hài hước đầu tiên và vạch trần cơ chế gây nghiện của mạng xã hội."},
+        {"id": "h2_d1_b3", "act": "Hồi 2 - Đoạn 1: Nhân chứng 1 - Mạng Xã Hội", "char_key": "ls-nguyen", "char_name": "Luật Sư Bên Nguyên Đơn", "guideline": "Bước lại gần Mạng Xã Hội, tay búng tay kiểu 'gotcha!', giơ cao thư mục như bằng chứng; mặt đắc ý, giọng sắc như dao; xả ra các số liệu thống kê về thời gian sinh viên trung bình dành cho mạng xã hội mỗi ngày, so sánh với thời gian học tập; mục tiêu dồn nhân chứng vào thế không chối cãi và tạo điểm nhấn logic."},
+        {"id": "h2_d1_b4", "act": "Hồi 2 - Đoạn 1: Nhân chứng 1 - Mạng Xã Hội", "char_key": "mxh", "char_name": "Nhân Chứng 1 - \"Mạng Xã Hội\"", "guideline": "Vẫn giữ nụ cười tự tin, vung tay như đang làm video; giọng vẫn vui vẻ, không hề áy náy; xả ra luận điểm 'niềm vui cũng quan trọng', 'tôi không ép ai cả', 'họ tự chọn mở app'; thỉnh thoảng quay sang chụp ảnh với Luật Sư; mục tiêu tạo sự tương phản hài hước giữa tội lỗi nghiêm trọng và thái độ vô tư."},
+        {"id": "h2_d1_b5", "act": "Hồi 2 - Đoạn 1: Nhân chứng 1 - Mạng Xã Hội", "char_key": "ls-bi", "char_name": "Luật Sư Bên Bị Đơn", "guideline": "Đứng dậy từ ghế bên phải, tay cầm sổ tay nhỏ, mặt lo lắng; bước về phía Mạng Xã Hội với vẻ cố gắng bảo vệ; giọng ấm áp nhưng hơi bất lực; xả ra luận điểm rằng sinh viên cũng cần giải trí, mạng xã hội giúp kết nối bạn bè; mục tiêu tạo hy vọng giả và cân bằng xung đột nhưng vẫn bị áp đảo."},
+        {"id": "h2_d1_b6", "act": "Hồi 2 - Đoạn 1: Nhân chứng 1 - Mạng Xã Hội", "char_key": "tham-phan", "char_name": "Thẩm Phán", "guideline": "Gõ búa nhẹ, lắc đầu với vẻ mỉa mai; giọng chậm rãi, đầy châm biếm; xả ra nhận xét rằng 'niềm vui không sai, nhưng 6 tiếng TikTok một ngày thì hơi quá'; mục tiêu kết thúc đoạn xét hỏi này và chuyển sang nhân chứng tiếp theo."},
+        {"id": "h2_d1_b7", "act": "Hồi 2 - Đoạn 1: Nhân chứng 1 - Mạng Xã Hội", "char_key": "mxh", "char_name": "Nhân Chứng 1 - \"Mạng Xã Hội\"", "guideline": "Vẫy tay chào tạm biệt như đang kết thúc livestream, quay về chỗ ngồi vẫn vừa đi vừa selfie; mục tiêu tạo ấn tượng kéo dài và giữ năng lượng cao."},
+
+        {"id": "h2_d2_b1", "act": "Hồi 2 - Đoạn 2: Nhân chứng 2 - Netflix/Game", "char_key": "ls-nguyen", "char_name": "Luật Sư Bên Nguyên Đơn", "guideline": "Lật giở thư mục kịch tính, tay chỉ thẳng vào nhân chứng thứ hai; giọng lạnh lùng; xả ra lời triệu tập 'Netflix và Game'; mục tiêu duy trì đà tấn công."},
+        {"id": "h2_d2_b2", "act": "Hồi 2 - Đoạn 2: Nhân chứng 2 - Netflix/Game", "char_key": "netflix", "char_name": "Nhân Chứng 2 - \"Netflix/Game\"", "guideline": "Đứng dậy chậm rãi từ ghế hàng đầu, tay cầm remote TV hoặc tay cầm game giả; bước ra trung tâm với dáng đi ung dung, thư giãn; mặt mỉm cười quyến rũ, mắt đưa tình; giọng chậm rãi, ấm áp như kể chuyện cổ tích hoặc ASMR; xả ra lời biện hộ rằng 'giải trí là quyền con người', 'sau một ngày căng thẳng ai cũng cần thư giãn', 'chỉ một tập thôi mà'; thỉnh thoảng giả vờ ăn bắp rang hoặc vươn vai thư giãn; mục tiêu tạo sự tương phản về giọng điệu với Mạng Xã Hội và vạch trần cơ chế 'just one more episode'."},
+        {"id": "h2_d2_b3", "act": "Hồi 2 - Đoạn 2: Nhân chứng 2 - Netflix/Game", "char_key": "ls-nguyen", "char_name": "Luật Sư Bên Nguyên Đơn", "guideline": "Bước lại gần, tay lật giở giấy tờ, mặt đắc ý; giọng sắc bén; xả ra số liệu về hiện tượng 'binge-watching', trung bình sinh viên cày phim 4-5 tiếng mỗi đêm trước kỳ thi; mục tiêu dồn nhân chứng vào góc tường."},
+        {"id": "h2_d2_b4", "act": "Hồi 2 - Đoạn 2: Nhân chứng 2 - Netflix/Game", "char_key": "netflix", "char_name": "Nhân Chứng 2 - \"Netflix/Game\"", "guideline": "Vẫn giữ nụ cười quyến rũ, giọng vẫn chậm rãi mê hoặc; xả ra luận điểm 'chất lượng phim bây giờ quá hay', 'storyline cuốn không thể bỏ dở', 'tôi không ép ai, họ tự click next episode'; mục tiêu tạo sự quyến rũ đầy mỉa mai."},
+        {"id": "h2_d2_b5", "act": "Hồi 2 - Đoạn 2: Nhân chứng 2 - Netflix/Game", "char_key": "sinh-vien", "char_name": "Sinh Viên Đại Diện", "guideline": "Vẫn ngồi ở ghế, che mặt bằng hai tay, rên rỉ nhỏ; giọng yếu ớt; xả ra lời thừa nhận 'em thật sự có tội' nhưng 'lúc đó quá mệt không kiểm soát được'; mục tiêu tạo cảm xúc đồng cảm."},
+        {"id": "h2_d2_b6", "act": "Hồi 2 - Đoạn 2: Nhân chứng 2 - Netflix/Game", "char_key": "tham-phan", "char_name": "Thẩm Phán", "guideline": "Gõ búa, lắc đầu; giọng mỉa mai; xả ra nhận xét 'một tập thành ba season, đúng là quyền con người'; mục tiêu kết thúc đoạn này và chuyển tiếp."},
+        {"id": "h2_d2_b7", "act": "Hồi 2 - Đoạn 2: Nhân chứng 2 - Netflix/Game", "char_key": "netflix", "char_name": "Nhân Chứng 2 - \"Netflix/Game\"", "guideline": "Vẫy tay chậm rãi, quay về chỗ ngồi với dáng đi thư giãn; mục tiêu giữ tone seductive đến hết."},
+
+        {"id": "h2_d3_b1", "act": "Hồi 2 - Đoạn 3: Nhân chứng 3 - Sự Trần Duy Lý", "char_key": "ls-nguyen", "char_name": "Luật Sư Bên Nguyên Đơn", "guideline": "Tay búng tay mạnh, chỉ thẳng vào nhân chứng cuối; giọng đầy khí thế; xả ra lời triệu tập 'Sự Trần Duy Lý - đại diện các hoạt động ngoại khóa vô bổ'; mục tiêu đẩy đà tấn công lên đỉnh điểm."},
+        {"id": "h2_d3_b2", "act": "Hồi 2 - Đoạn 3: Nhân chứng 3 - Sự Trần Duy Lý", "char_key": "tran-duy-ly", "char_name": "Nhân Chứng 3 - \"Sự Trần Duy Lý\"", "guideline": "Bật dậy với năng lượng cực cao, tay vẫy banner hoặc poster giả về sự kiện; chạy nhảy ra trung tâm, vỗ tay liên tục; mặt phấn khích rạng rỡ, mắt sáng ngời; giọng nhanh, rối rắm, nhiệt tình; xả ra lời mời chào tham gia vô vàn workshop, seminar, teambuilding, hội thảo kỹ năng mềm; liên tục phát tờ rơi giả cho Thẩm Phán, Luật Sư, thậm chí khán giả; nhảy nhót, vẫy banner không ngừng; xả ra luận điểm 'tham gia mọi thứ là tốt mà', 'networking quan trọng lắm', 'CV cần nhiều hoạt động'; mục tiêu tạo cao trào năng lượng quá mức và châm biếm hiện tượng 'đua nhau tham gia sự kiện để sống ảo'."},
+        {"id": "h2_d3_b3", "act": "Hồi 2 - Đoạn 3: Nhân chứng 3 - Sự Trần Duy Lý", "char_key": "ls-nguyen", "char_name": "Luật Sư Bên Nguyên Đơn", "guideline": "Lùi lại vì bị tràn ngập tờ rơi, tay vẫy như đang đuổi ruồi; giọng cố gắng giữ bình tĩnh nhưng hơi bực bội; xả ra câu hỏi sắc bén 'trong 20 sự kiện em tham gia, có bao nhiêu thứ thật sự có ích?'; mục tiêu đâm thủng luận điểm của nhân chứng."},
+        {"id": "h2_d3_b4", "act": "Hồi 2 - Đoạn 3: Nhân chứng 3 - Sự Trần Duy Lý", "char_key": "tran-duy-ly", "char_name": "Nhân Chứng 3 - \"Sự Trần Duy Lý\"", "guideline": "Dừng lại một chút, mặt ngơ ngác, tay vẫn cầm banner; giọng hơi lúng túng nhưng vẫn nhiệt tình; xả ra lời biện hộ yếu ớt 'dù sao cũng học được gì đó', 'ít nhất là vui'; mục tiêu tạo khoảnh khắc hài hước vì sự hồn nhiên ngây thơ."},
+        {"id": "h2_d3_b5", "act": "Hồi 2 - Đoạn 3: Nhân chứng 3 - Sự Trần Duy Lý", "char_key": "ls-bi", "char_name": "Luật Sư Bên Bị Đơn", "guideline": "Đứng dậy, tay xoa mặt mệt mỏi, vai sụp xuống; giọng yếu ớt; xả ra lời cố gắng bảo vệ rằng 'hoạt động ngoại khóa cũng quan trọng', nhưng giọng không thuyết phục; mục tiêu thể hiện sự bất lực ngày càng rõ."},
+        {"id": "h2_d3_b6", "act": "Hồi 2 - Đoạn 3: Nhân chứng 3 - Sự Trần Duy Lý", "char_key": "tham-phan", "char_name": "Thẩm Phán", "guideline": "Gõ búa mạnh, tay đỡ đầu như đau đầu; giọng mệt mỏi nhưng mỉa mai; xả ra nhận xét '20 sự kiện nhưng GPA 2.0, thật là networking đỉnh cao'; mục tiêu kết thúc đoạn này bằng một punchline cay đắng."},
+        {"id": "h2_d3_b7", "act": "Hồi 2 - Đoạn 3: Nhân chứng 3 - Sự Trần Duy Lý", "char_key": "tran-duy-ly", "char_name": "Nhân Chứng 3 - \"Sự Trần Duy Lý\"", "guideline": "Vẫn vỗ tay và vẫy banner khi quay về chỗ ngồi, vẫn rạng rỡ như không hiểu mình bị châm biếm; mục tiêu giữ nhất quán tính cách hồn nhiên."},
+
+        {"id": "h3_b1", "act": "Hồi 3: Cao trào đỉnh điểm & Đột biến bất ngờ", "char_key": "ls-nguyen", "char_name": "Luật Sư Bên Nguyên Đơn", "guideline": "Đứng thẳng, tay giơ cao thư mục; giọng đanh thép; xả ra lời kết luận rằng 'đã rõ ràng, Sinh Viên đồng phạm với ba kẻ ăn cắp thời gian này'; mục tiêu dồn Sinh Viên vào đường cùng."},
+        {"id": "h3_b2", "act": "Hồi 3: Cao trào đỉnh điểm & Đột biến bất ngờ", "char_key": "sinh-vien", "char_name": "Sinh Viên Đại Diện", "guideline": "Bật dậy khỏi ghế, balo rơi xuống đất, tay run rẩy; bước ra trung tâm với vẻ quyết tâm cuối cùng; mặt đầy nước mắt nhưng ánh mắt quyết liệt; giọng run rẩy nhưng ngày càng lớn dần; xả hết cảm xúc ức chế - thừa nhận có lỗi nhưng phản bác rằng 'không ai dạy em cách quản lý thời gian', 'mọi người chỉ bảo hãy cố gắng nhưng không ai chỉ cách', 'áp lực từ gia đình, xã hội, bản thân quá lớn'; mục tiêu tạo điểm bùng nổ cảm xúc và đồng cảm tối đa từ khán giả."},
+        {"id": "h3_b3", "act": "Hồi 3: Cao trào đỉnh điểm & Đột biến bất ngờ", "char_key": "thoi-gian", "char_name": "Nguyên Đơn - \"Thời Gian\"", "guideline": "Bật dậy, tay đập mạnh đồng hồ xuống bàn; bước ra trung tâm đối mặt trực diện với Sinh Viên; mặt giận dữ, hai tay chống ngang; giọng gầm gừ, cay đắng; xả hết nỗi uất ức - 'Không ai dạy à? Lịch học có sẵn, deadline ghi rõ ràng, 24 tiếng một ngày ai cũng như nhau, tại sao người khác làm được còn em không?'; mục tiêu đấu lại bằng logic cứng rắn và tạo đối đầu trực diện."},
+        {"id": "h3_b4", "act": "Hồi 3: Cao trào đỉnh điểm & Đột biến bất ngờ", "char_key": "sinh-vien", "char_name": "Sinh Viên Đại Diện", "guideline": "Bước thêm một bước về phía Thời Gian, nước mắt tuôn ra; giọng gần như thét lên; xả ra lời phản bác 'Vì người khác không phải là em! Mỗi người có hoàn cảnh riêng! Có người nhà giàu không cần làm thêm, có người tự học giỏi không cần ôn nhiều, còn em phải vật lộn với mọi thứ!'; mục tiêu tạo cao trào cảm xúc đỉnh điểm."},
+        {"id": "h3_b5", "act": "Hồi 3: Cao trào đỉnh điểm & Đột biến bất ngờ", "char_key": "thoi-gian", "char_name": "Nguyên Đơn - \"Thời Gian\"", "guideline": "Giơ tay như muốn phản bác tiếp; giọng vẫn đầy giận dữ; bắt đầu xả ra lời 'Đó chỉ là lý do bao biện, sự thật là...'."},
+        {"id": "h3_b6", "act": "Hồi 3: Cao trào đỉnh điểm & Đột biến bất ngờ", "char_key": "thu-ky", "char_name": "Thư Ký Tòa Án (Punchline Cú Chốt)", "guideline": "Đột ngột gõ búa CỰC MẠNH ba cái liên tiếp, tiếng vang khắp hội trường; mặt nghiêm khắc nhưng ánh mắt tinh nghịch; giọng bật lên rõ ràng, châm biếm; xả ra punchline cú chốt 'TRẬT TỰ! Các bên đang lãng phí thời gian của tòa...ủa khoan, đó chẳng phải chính xác là lý do chúng ta đang ở đây sao?!'; mục tiêu tạo hiệu ứng shock, phá vỡ căng thẳng bằng hài hước meta và chuyển tone đột ngột."},
+        {"id": "h3_b7", "act": "Hồi 3: Cao trào đỉnh điểm & Đột biến bất ngờ", "char_key": "tham-phan", "char_name": "Thẩm Phán", "guideline": "Gõ búa nhẹ, lắc đầu với nụ cười mỉa mai; giọng chậm rãi; xả ra nhận xét 'Thư ký nói đúng. Chúng ta đang lãng phí thời gian tranh luận về... lãng phí thời gian. Tòa cần một chuyên gia.'; mục tiêu chuyển sang Hồi 4."},
+
+        {"id": "h4_b1", "act": "Hồi 4: Bước ngoặt nhận thức / Chuyên gia can thiệp", "char_key": "tham-phan", "char_name": "Thẩm Phán", "guideline": "Gõ búa nhẹ, tay ra hiệu mời; giọng nghiêm túc hơn hẳn; xả ra lời mời 'Giáo Sư Tâm Lý Học' lên làm chứng; mục tiêu chuyển không khí từ hài sang nghiêm túc."},
+        {"id": "h4_b2", "act": "Hồi 4: Bước ngoặt nhận thức / Chuyên gia can thiệp", "char_key": "giao-su", "char_name": "Chuyên Gia - \"Giáo Sư Tâm Lý Học\"", "guideline": "Đứng dậy chậm rãi từ ghế hàng đầu, tay cầm kính gọng to đeo lên, tay kia cầm bút như con trỏ laser; bước ra trung tâm với dáng đi ổn định, trầm tĩnh; mặt nghiêm túc, ánh mắt thấu hiểu; giọng trầm, ổn định, đáng tin; xả ra lời chào Thẩm Phán và toàn thể tòa; mục tiêu thiết lập uy tín chuyên gia."},
+        {"id": "h4_b3", "act": "Hồi 4: Bước ngoặt nhận thức / Chuyên gia can thiệp", "char_key": "giao-su", "char_name": "Giáo Sư Tâm Lý Học", "guideline": "Đẩy kính lên, tay cầm bút chỉ vào không trung như đang vẽ biểu đồ tưởng tượng; giọng học thuật nhưng dễ hiểu; xả ra phân tích tâm lý - 'Vấn đề không chỉ là lãng phí thời gian, mà là vì sao sinh viên lại làm thế'; trích dẫn nghiên cứu về 'Instant Gratification Monkey' (con khỉ thích khoái lạc tức thì) trong não bộ con người, giải thích cơ chế não bộ chọn khoái lạc ngắn hạn hơn là mục tiêu dài hạn; mục tiêu làm sáng tỏ nguyên nhân khoa học."},
+        {"id": "h4_b4", "act": "Hồi 4: Bước ngoặt nhận thức / Chuyên gia can thiệp", "char_key": "giao-su", "char_name": "Giáo Sư Tâm Lý Học", "guideline": "Tiếp tục vẽ biểu đồ trên không, tay chỉ về phía Sinh Viên; giọng ấm áp hơn, đầy thấu hiểu; xả ra phân tích về áp lực xã hội hiện đại - so sánh với người khác trên mạng xã hội, FOMO (Fear of Missing Out), hội chứng 'phải làm mọi thứ'; giải thích rằng đây không phải lỗi hoàn toàn của sinh viên, mà là hệ quả của môi trường; mục tiêu tạo sự đồng cảm và giảm tội lỗi."},
+        {"id": "h4_b5", "act": "Hồi 4: Bước ngoặt nhận thức / Chuyên gia can thiệp", "char_key": "giao-su", "char_name": "Giáo Sư Tâm Lý Học", "guideline": "Quay sang Thời Gian, tay đẩy kính, gật đầu nghiêm túc; giọng trung lập; xả ra nhận định rằng Thời Gian cũng không sai khi cảm thấy bị lãng phí, nhưng 'trách móc không giải quyết vấn đề'; mục tiêu cân bằng hai bên và dẫn dắt vào giải pháp."},
+        {"id": "h4_b6", "act": "Hồi 4: Bước ngoặt nhận thức / Chuyên gia can thiệp", "char_key": "giao-su", "char_name": "Giáo Sư Tâm Lý Học (Đúc Kết)", "guideline": "Bước ra trung tâm hoàn toàn, tay vẽ biểu đồ cuối cùng; giọng quyết đoán, đầy năng lượng; xả ra giải pháp cụ thể - ba kỹ năng cốt lõi quản lý thời gian: (1) Kỹ thuật Pomodoro - chia nhỏ thời gian làm việc; (2) Ma trận Eisenhower - phân loại việc quan trọng/khẩn cấp; (3) Nguyên tắc 'Ăn con ếch trước' - làm việc khó nhất đầu tiên; giải thích ngắn gọn từng kỹ thuật bằng ví dụ sinh động; mục tiêu đưa ra công cụ thực tế cho khán giả áp dụng."},
+        {"id": "h4_b7", "act": "Hồi 4: Bước ngoặt nhận thức / Chuyên gia can thiệp", "char_key": "giao-su", "char_name": "Giáo Sư Tâm Lý Học", "guideline": "Quay lại Thẩm Phán, cúi đầu nhẹ; giọng kết luận; xả ra lời 'Tóm lại, cả hai bên đều có phần đúng, nhưng giải pháp không nằm ở việc đổ lỗi, mà ở việc học cách làm chủ thời gian.'; mục tiêu kết thúc phần chuyên gia và dẫn dắt vào phán quyết."},
+        {"id": "h4_b8", "act": "Hồi 4: Bước ngoặt nhận thức / Chuyên gia can thiệp", "char_key": "tham-phan", "char_name": "Thẩm Phán", "guideline": "Gật đầu chậm rãi, tay gõ búa nhẹ; giọng trầm ngâm; xả ra lời cảm ơn Giáo Sư và tuyên bố sẽ tuyên án; mục tiêu chuyển sang Hồi 5."},
+
+        {"id": "h5_b1", "act": "Hồi 5: Tuyên án, hòa giải & Kết thúc mở", "char_key": "tham-phan", "char_name": "Thẩm Phán", "guideline": "Đứng dậy khỏi ghế, tay cầm búa giơ cao; mặt nghiêm trang nhưng ánh mắt vẫn có chút tinh nghịch; giọng trang trọng; xả ra bản án - 'Sau khi xem xét toàn bộ chứng cứ và lời khai, tòa tuyên: Bị cáo SINH VIÊN có tội... đồng phạm với ba kẻ ăn cắp thời gian.'; dừng lại để tạo hiệu ứng kịch tính; mục tiêu tạo twist bất ngờ."},
+        {"id": "h5_b2", "act": "Hồi 5: Tuyên án, hòa giải & Kết thúc mở", "char_key": "tham-phan", "char_name": "Thẩm Phán", "guideline": "Tiếp tục, giọng chậm rãi nhưng đầy mỉa mai; xả ra phần tiếp theo - 'Tuy nhiên, Nguyên Đơn THỜI GIAN cũng bị phạt vì... quá khắt khe và không thấu hiểu hoàn cảnh. Hình phạt cho cả hai: phải học cách hợp tác với nhau.'; mục tiêu tạo sự cân bằng và dẫn dắt vào hòa giải."},
+        {"id": "h5_b3", "act": "Hồi 5: Tuyên án, hòa giải & Kết thúc mở", "char_key": "thu-ky", "char_name": "Thư Ký Tòa Án", "guideline": "Bước lên, tay cầm tập biên bản; giọng rõ ràng; đọc chi tiết hình phạt - 'Sinh Viên phải hoàn thành bài tập này đúng hạn bằng cách áp dụng ba kỹ thuật Giáo Sư vừa dạy. Thời Gian phải kiên nhẫn hơn và cho sinh viên cơ hội thứ hai.'; mục tiêu làm rõ hình phạt."},
+        {"id": "h5_b4", "act": "Hồi 5: Tuyên án, hòa giải & Kết thúc mở", "char_key": "tham-phan", "char_name": "Thẩm Phán", "guideline": "Gõ búa, tay ra hiệu cho Sinh Viên và Thời Gian; giọng mềm mỏng hơn; xả ra lời yêu cầu hai bên bắt tay hòa giải; mục tiêu tạo khoảnh khắc hòa giải tượng trưng."},
+        {"id": "h5_b5", "act": "Hồi 5: Tuyên án, hòa giải & Kết thúc mở", "char_key": "sinh-vien", "char_name": "Sinh Viên Đại Diện", "guideline": "Bước ra trung tâm chậm rãi, tay đưa ra run rẩy; mặt còn ửng đỏ vì nước mắt nhưng đã dịu lại; giọng nhỏ nhẹ, chân thành; xả ra lời xin lỗi Thời Gian và hứa sẽ trân trọng hơn; mục tiêu tạo cảm xúc chân thành."},
+        {"id": "h5_b6", "act": "Hồi 5: Tuyên án, hòa giải & Kết thúc mở", "char_key": "thoi-gian", "char_name": "Nguyên Đơn - \"Thời Gian\"", "guideline": "Bước ra trung tâm, nhìn Sinh Viên với ánh mắt dịu lại; tay đưa ra bắt tay, đồng hồ cát đặt xuống; giọng vẫn hơi cứng nhưng ấm áp hơn; xả ra lời thừa nhận rằng mình cũng quá khắt khe, hứa sẽ kiên nhẫn hơn nếu Sinh Viên cố gắng; mục tiêu tạo kết thúc hòa giải."},
+        {"id": "h5_b7", "act": "Hồi 5: Tuyên án, hòa giải & Kết thúc mở", "char_key": "tham-phan", "char_name": "Thẩm Phán", "guideline": "Gõ búa nhẹ, nụ cười mãn nguyện; giọng trang trọng; tuyên bố 'Phiên tòa kết thúc.'; mục tiêu đóng phiên tòa chính thức."},
+        {"id": "h5_b8", "act": "Hồi 5: Tuyên án, hòa giải & Kết thúc mở", "char_key": "thu-ky", "char_name": "Thư Ký Tòa Án (Punchline Kết Thúc)", "guideline": "Đột ngột bước ra trung tâm, quay hẳn về phía khán giả; tay chỉ thẳng vào khán giả, mặt nghiêm khắc nhưng ánh mắt tinh nghịch; giọng vang lên rõ ràng, châm biếm; xả ra punchline chào kết - 'Thưa quý vị khán giả, phiên tòa này là giả định... nhưng TỘI LỖI CỦA CÁC BẠN THÌ CÓ THẬT. Hôm nay về nhà, các bạn sẽ mở TikTok trước hay làm assignment trước? Tòa sẽ theo dõi đấy!'; mục tiêu kéo khán giả vào cuộc, tạo hiệu ứng tương tác và để lại dư vị sâu sắc."}
+    ];
+
+    // Cấu hình Firebase Realtime Database
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "SENDER_ID",
+        appId: "APP_ID"
+    };
+
+    let isFirebaseActive = false;
+    let db = null;
+    let dialoguesRef = null;
+
+    try {
+        if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            dialoguesRef = db.ref('dialogues');
+            isFirebaseActive = true;
+            document.getElementById('syncStatusText').innerText = "Đã kết nối Firebase Cloud (Đồng bộ Realtime)";
+        } else {
+            document.getElementById('syncStatusText').innerText = "Lưu trữ nội bộ (Tự động lưu vào trình duyệt)";
+        }
+    } catch (e) {
+        console.warn("Firebase not initialized, using localStorage.", e);
+    }
+
+    let currentRole = 'all';
+    let currentMode = 'full';
+    const timeouts = {};
+
+    function renderScript() {
+        const container = document.getElementById('scriptContent');
+        let html = '';
+        let lastAct = '';
+
+        scriptBeats.forEach((beat, index) => {
+            if (beat.act !== lastAct) {
+                lastAct = beat.act;
+                html += `<div class="act-header" data-act="${beat.act}">
+                    <h2>${beat.act.toUpperCase()}</h2>
+                </div>`;
+            }
+
+            const savedValue = localStorage.getItem('dialogue_' + beat.id) || '';
+
+            html += `
+            <div class="beat-card c-${beat.char_key}" id="card-${beat.id}" data-char="${beat.char_key}" data-act="${beat.act}">
+                <div class="beat-meta">
+                    <span class="char-badge">${beat.char_name}</span>
+                    <span class="beat-index">Cảnh ${index + 1} / 51</span>
+                </div>
+                <div class="guideline-text">(${beat.guideline})</div>
+                <div class="dialogue-box" id="box-${beat.id}">
+                    <div class="dialogue-label">
+                        <span>💬 Lời thoại nhân vật tự điền:</span>
+                    </div>
+                    <textarea 
+                        id="input-${beat.id}"
+                        class="dialogue-textarea" 
+                        data-beat="${beat.id}" 
+                        data-char="${beat.char_key}"
+                        placeholder="Nhập lời thoại của bạn cho phân cảnh này..."
+                        oninput="handleInput('${beat.id}', this)"
+                    >${savedValue}</textarea>
+                    <div class="print-dialogue-text" id="print-${beat.id}">${savedValue || '(Chưa điền lời thoại)'}</div>
+                    <div class="dialogue-status" id="status-${beat.id}">Tự động lưu khi gõ</div>
+                </div>
+            </div>`;
+        });
+
+        container.innerHTML = html;
+
+        if (isFirebaseActive && dialoguesRef) {
+            dialoguesRef.on('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                Object.keys(data).forEach(beatId => {
+                    const textarea = document.getElementById(`input-${beatId}`);
+                    const printEl = document.getElementById(`print-${beatId}`);
+                    if (textarea && document.activeElement !== textarea) {
+                        textarea.value = data[beatId];
+                        localStorage.setItem('dialogue_' + beatId, data[beatId]);
+                        if (printEl) printEl.innerText = data[beatId] || '(Chưa điền lời thoại)';
+                    }
+                });
+                updateProgress();
+            });
+        }
+
+        updateProgress();
+    }
+
+    function handleRoleChange(selectedRole) {
+        currentRole = selectedRole;
+        const roleInfoCard = document.getElementById('roleInfoCard');
+
+        if (selectedRole === 'all') {
+            roleInfoCard.style.display = 'none';
+        } else {
+            const info = charMetadata[selectedRole];
+            document.getElementById('roleTitle').innerText = info.name + " (" + info.title + ")";
+            document.getElementById('roleVibe').innerText = info.vibe;
+            document.getElementById('roleProps').innerText = info.props;
+            roleInfoCard.style.display = 'block';
+        }
+
+        applyFilters();
+        updateProgress();
+    }
+
+    function toggleViewMode(mode) {
+        currentMode = mode;
+        document.getElementById('btnFocusMode').classList.toggle('active', mode === 'focus');
+        document.getElementById('btnFullMode').classList.toggle('active', mode === 'full');
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const cards = document.querySelectorAll('.beat-card');
+        const actHeaders = document.querySelectorAll('.act-header');
+
+        cards.forEach(card => {
+            const cardChar = card.getAttribute('data-char');
+            const isMyRole = (currentRole !== 'all' && cardChar === currentRole);
+            
+            if (isMyRole) {
+                card.classList.add('my-role-highlight');
+                const box = card.querySelector('.dialogue-box');
+                if (box) box.classList.add('active-user');
+            } else {
+                card.classList.remove('my-role-highlight');
+                const box = card.querySelector('.dialogue-box');
+                if (box) box.classList.remove('active-user');
+            }
+
+            if (currentMode === 'focus' && currentRole !== 'all') {
+                card.style.display = isMyRole ? 'block' : 'none';
+            } else {
+                card.style.display = 'block';
+            }
+        });
+
+        actHeaders.forEach(header => {
+            const actName = header.getAttribute('data-act');
+            const visibleCardsInAct = document.querySelectorAll(`.beat-card[data-act="${actName}"][style*="display: block"]`);
+            if (currentMode === 'focus' && currentRole !== 'all') {
+                header.style.display = visibleCardsInAct.length > 0 ? 'flex' : 'none';
+            } else {
+                header.style.display = 'flex';
+            }
+        });
+    }
+
+    function handleInput(beatId, textarea) {
+        const val = textarea.value;
+        const statusEl = document.getElementById(`status-${beatId}`);
+        const printEl = document.getElementById(`print-${beatId}`);
+
+        if (printEl) printEl.innerText = val.trim() || '(Chưa điền lời thoại)';
+        localStorage.setItem('dialogue_' + beatId, val);
+
+        statusEl.innerText = "Đang lưu...";
+        statusEl.style.color = "#d97706";
+
+        clearTimeout(timeouts[beatId]);
+        timeouts[beatId] = setTimeout(() => {
+            if (isFirebaseActive && dialoguesRef) {
+                dialoguesRef.child(beatId).set(val).then(() => {
+                    statusEl.innerText = "Đã lưu lên Cloud ✔";
+                    statusEl.style.color = "#16a34a";
+                }).catch(() => {
+                    statusEl.innerText = "Đã lưu trên máy (Offline) ✔";
+                    statusEl.style.color = "#2563eb";
+                });
+            } else {
+                statusEl.innerText = "Đã lưu vào bộ nhớ ✔";
+                statusEl.style.color = "#16a34a";
+            }
+            updateProgress();
+        }, 400);
+    }
+
+    function updateProgress() {
+        if (currentRole === 'all') return;
+        const myBeats = scriptBeats.filter(b => b.char_key === currentRole);
+        let filledCount = 0;
+        myBeats.forEach(b => {
+            const val = localStorage.getItem('dialogue_' + b.id) || '';
+            if (val.trim().length > 0) filledCount++;
+        });
+
+        const percent = myBeats.length > 0 ? Math.round((filledCount / myBeats.length) * 100) : 0;
+        const progressEl = document.getElementById('roleProgress');
+        if (progressEl) {
+            progressEl.innerText = `Tiến độ điền: ${filledCount}/${myBeats.length} cảnh (${percent}%)`;
+        }
+    }
+
+    function exportToPdf() {
+        scriptBeats.forEach(b => {
+            const val = localStorage.getItem('dialogue_' + b.id) || '';
+            const printEl = document.getElementById(`print-${b.id}`);
+            if (printEl) printEl.innerText = val.trim() || '(Chưa điền lời thoại)';
+        });
+
+        window.print();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        renderScript();
+    });
+</script>
+
+</body>
+</html>
